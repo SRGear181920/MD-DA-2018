@@ -8,66 +8,29 @@ colnames(concrete) <- c("Cement",
                          "Age", 
                          "Concrete.compressive.strength")
 
+m<-mean(concrete$Concrete.compressive.strength)
+concrete$Concrete.compressive<-ifelse(concrete$Concrete.compressive.strength > m, 1, 2)
 
-
-concrete$Concrete.compressive=concrete$Concrete.compressive.strength%/%10
-concrete<-concrete[(concrete$Concrete.compressive<7) & (concrete$Concrete.compressive>0),]
 concrete$Concrete.compressive <- 
-  factor(c("A1", "A2", "A3", "A4", "A5", "A6")[concrete$Concrete.compressive])
+  factor(c("GOOD", "BAD")[concrete$Concrete.compressive])
 concrete$Concrete.compressive.strength <- NULL
+good<-concrete[concrete$Concrete.compressive == "GOOD",]
+bad<-concrete[concrete$Concrete.compressive == "BAD",]
 
+featurePlot(x=bad[,1:8], y = bad[,9], plot = "box")
+bad<-bad[bad$Fine.Aggregate <910 & bad$Fine.Aggregate>650 &
+           bad$Age<50,]
+featurePlot(x=good[,1:8], y = good[,9], plot = "box")
+good<-good[good$Fine.Aggregate<950 & good$Age <200 & 
+             good$Blast.Furnace.Slag<310,]
 
-percentage <- prop.table(table(concrete$Concrete.compressive)) * 100
-cbind(freq=table(concrete$Concrete.compressive), percentage=percentage)
-
-
-
-A1<-concrete[concrete$Concrete.compressive =="A1",]
-featurePlot(x=A1[,1:8], y = A1[,9], plot = "box")
-
-
-A2<-concrete[concrete$Concrete.compressive =="A2",] 
-featurePlot(x=A2[,1:8], y = A2[,9], plot = "box")
-
-
-A3<-concrete[concrete$Concrete.compressive =="A3",] 
-featurePlot(x=A3[,1:8], y = A3[,9], plot = "box")
-
-A4<-concrete[concrete$Concrete.compressive =="A4",]
-featurePlot(x=A4[,1:8], y = A4[,9], plot = "box")
-
-A5<-concrete[concrete$Concrete.compressive =="A5",]
-featurePlot(x=A5[,1:8], y = A5[,9], plot = "box")
-
-A6<-concrete[concrete$Concrete.compressive =="A6",]
-featurePlot(x=A6[,1:8], y = A6[,9], plot = "box")
-
-concreteNew <- concrete[((concrete$Cement <400 &
-                          (concrete$Fine.Aggregate <910 & concrete$Fine.Aggregate >650) &
-                          (concrete$Coarse.Aggregate >825) &
-                          (concrete$Water >125) & concrete$Blast.Furnace.Slag <250) & concrete$Concrete.compressive == "A1") |
-                          (concrete$Concrete.compressive == "A2" & concrete$Age<30 & 
-                             concrete$Fine.Aggregate<930 & concrete$Fine.Aggregate>600 &
-                             concrete$Water >130 & concrete$Water <230) |
-                          (concrete$Concrete.compressive == "A3" & concrete$Age<80 & concrete$Fine.Aggregate <910) |
-                          (concrete$Concrete.compressive == "A4" & concrete$Age <200 & concrete$Fine.Aggregate <950) |
-                          (concrete$Concrete.compressive == "A5" & concrete$Age < 150 & concrete$Fine.Aggregate < 950 & concrete$Water <220 ) |
-                          (concrete$Concrete.compressive == "A6" & concrete$Age < 101)
-                          ,]
-                
+concreteNew <- rbind(bad,good) 
 featurePlot(x=concrete[,1:8], y = concrete[,9], plot = "box")
 featurePlot(x=concreteNew[,1:8], y = concreteNew[,9], plot = "box")
 
-
-
-hist(concrete$Cement)
-hist(concrete$Blast.Furnace.Slag)
-hist(concrete$Fly.Ash)
-hist(concrete$Water)
-hist(concrete$Superplasticizer)
-hist(concrete$Coarse.Aggregate)
-hist(concrete$Fine.Aggregate)
-hist(concrete$Age)
+percentage <- prop.table(table(concreteNew$Concrete.compressive)) * 100
+cbind(freq=table(concreteNew$Concrete.compressive), percentage=percentage)
+plot(concreteNew$Concrete.compressive)
 
 #Выборка данных для проверки
 validation_index <- createDataPartition(concreteNew$Concrete.compressive, p=0.80, list=FALSE)

@@ -10,26 +10,24 @@ colnames(concrete) <- c("Cement",
                         "Coarse.Aggregate","Fine.Aggregate",
                          "Age", 
                          "Concrete.compressive.strength")
-concrete<-concrete[-c(51, 46, 682, 556, 506, 483),]
 #Назначаем категории и избавляемся от категорий, где данных мало
-concrete$Concrete.compressive=concrete$Concrete.compressive.strength%/%10
-concrete<-concrete[(concrete$Concrete.compressive<7) & (concrete$Concrete.compressive>0),]
+m<-mean(concrete$Concrete.compressive.strength)
+concrete$Concrete.compressive<-ifelse(concrete$Concrete.compressive.strength > m, 1, 2)
+
 concrete$Concrete.compressive <- 
-  factor(c("A1", "A2", "A3", "A4", "A5", "A6")[concrete$Concrete.compressive])
+  factor(c("GOOD", "BAD")[concrete$Concrete.compressive])
 concrete$Concrete.compressive.strength <- NULL
+concrete[-c(1,46, 51, 84, 274, 491 ),]
+good<-concrete[concrete$Concrete.compressive == "GOOD",]
+bad<-concrete[concrete$Concrete.compressive == "BAD",]
 
 ## Чистим данные исходя из графиков
-concrete<- concrete[((concrete$Cement <400 &
-                        (concrete$Fine.Aggregate <910 & concrete$Fine.Aggregate >650) &
-                        (concrete$Coarse.Aggregate >825) &
-                        (concrete$Water >125) & concrete$Blast.Furnace.Slag <250) & concrete$Concrete.compressive == "A1") |
-                      (concrete$Concrete.compressive == "A2" & concrete$Age<30 & 
-                         concrete$Fine.Aggregate<930 & concrete$Fine.Aggregate>600 &
-                         concrete$Water >130 & concrete$Water <230) |
-                      (concrete$Concrete.compressive == "A3" & concrete$Age<80 & concrete$Fine.Aggregate <910) |
-                      (concrete$Concrete.compressive == "A4" & concrete$Age <200 & concrete$Fine.Aggregate <950) |
-                      (concrete$Concrete.compressive == "A5" & concrete$Age < 150 & concrete$Fine.Aggregate < 950 & concrete$Water <220 ) |
-                      (concrete$Concrete.compressive == "A6" & concrete$Age < 101),]
+bad<-bad[bad$Fine.Aggregate <910 & bad$Fine.Aggregate>650 &
+           bad$Age<50,]
+good<-good[good$Fine.Aggregate<950 & good$Age <200 & 
+             good$Blast.Furnace.Slag<310,]
+
+concreteNew <- rbind(bad,good) 
 
 
 control <- trainControl(method="cv", number=10)
